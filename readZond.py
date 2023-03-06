@@ -18,6 +18,11 @@ log.addHandler(ch)
 import numpy as np
 import pandas as pd
 
+def ddm2dd(ddm):
+    dd = int(ddm/100)
+    dd += (ddm-dd*100)/60
+    return dd
+
 def read(file, loglevel="INFO"):
     log.setLevel(loglevel)
     log.info("Beginning Zond Aero 500 file read")
@@ -75,8 +80,8 @@ def read(file, loglevel="INFO"):
 
             # Position
             agl[i] = struct.unpack("<f", header[40:44])[0]
-            lon[i] = struct.unpack("<d", header[182:190])[0]/100
-            lat[i] = struct.unpack("<d", header[190:198])[0]/100
+            lon[i] = ddm2dd(struct.unpack("<d", header[182:190])[0])
+            lat[i] = ddm2dd(struct.unpack("<d", header[190:198])[0])
 
             # Time
             year = struct.unpack("h", header[156:158])[0]
@@ -139,7 +144,6 @@ def read(file, loglevel="INFO"):
     log.info("Calculating ECEF UAS location")
     # lat/lon/hgt -> ECEF
     xform = pyproj.Transformer.from_crs(4326, 4978)
-    print(lon, lat, hgt)
     x, y, z = xform.transform(lat, lon, hgt)
 
     log.info("Calculating along-flightline distance")
@@ -149,26 +153,26 @@ def read(file, loglevel="INFO"):
     dDist = np.sqrt(dx**2 + dy**2 + dz**2)
     dist = np.concatenate(([0], np.cumsum(dDist)))
         
-dataDict = {
-    "bscan": bscan,           # The BScan or radargram, data acquired by the GPR (size: mxn)
-    "lon": lon,               # Longitude of the UAS (WGS84) (size: n)
-    "lat": lat,               # Latitude of the UAS (WGS84) (size: n)
-    "hgt": hgt,               # Height of the UAS about the WGS84 ellipsoid (size: n)
-    "agl": agl,               # Height of the UAS above ground (size: n)
-    "speed": speed,           # Speed of the UAS (m/s) (size: n)
-    "rtkMask": rtkMask,       # Mask for lon, lat, and hgt fields denoting which entries come from RTK (True == RTK) (size: n)
-    "altMask": aglMask,       # Mask for agl field denoting which entries come from laser altimeter (True == altimeter) (size: n)
-    "speedMask": speedMask,   # Mask for speed field denoting which entries are not nan (True == not nan) (size: n)
-    "time": time,             # Time of the acquisition of each trace (size: n)
-    "dt": dt,                 # Fast time sampling interval of the GPR (size: 1)
-}
+    dataDict = {
+        "bscan": bscan,           # The BScan or radargram, data acquired by the GPR (size: mxn)
+        "lon": lon,               # Longitude of the UAS (WGS84) (size: n)
+        "lat": lat,               # Latitude of the UAS (WGS84) (size: n)
+        "hgt": hgt,               # Height of the UAS about the WGS84 ellipsoid (size: n)
+        "agl": agl,               # Height of the UAS above ground (size: n)
+        "speed": speed,           # Speed of the UAS (m/s) (size: n)
+        "rtkMask": rtkMask,       # Mask for lon, lat, and hgt fields denoting which entries come from RTK (True == RTK) (size: n)
+        "altMask": aglMask,       # Mask for agl field denoting which entries come from laser altimeter (True == altimeter) (size: n)
+        "speedMask": speedMask,   # Mask for speed field denoting which entries are not nan (True == not nan) (size: n)
+        "time": time,             # Time of the acquisition of each trace (size: n)
+        "dt": dt,                 # Fast time sampling interval of the GPR (size: 1)
+    }
     
     log.info("Zond Aero 500 file read complete")
     return dataDict
 
 def main():
     rdr = read(sys.argv[1], loglevel="INFO")
-    print(rdr["x"])
+    #print(rdr["agl"])
     #plt.show()
     
 main()
