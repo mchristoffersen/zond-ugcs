@@ -123,37 +123,40 @@ def read(file, loglevel="CRITICAL"):
         % (100 * np.sum(df["RTK Status"] == "ON") // ntrace)
     )
 
-    if len(df) != ntrace:
-        log.warning("Length of decimated position file != number of traces")
-
     hgt = np.zeros(ntrace, dtype=np.float32)
     speed = np.zeros(ntrace, dtype=np.float32) * np.nan
     rtkMask = np.zeros(ntrace, dtype=bool)
     aglMask = np.zeros(ntrace, dtype=bool)
     speedMask = np.zeros(ntrace, dtype=bool)
 
-    log.info("Extracting RTK position, altimeter height, UAS speed")
-    rtkMask[df["GPR:Trace"]] = rtkONMask
-    aglMask[df["GPR:Trace"]] = True
-    speedMask[df["GPR:Trace"]] = True
+    if len(df) < ntrace:
+        log.warning("Length of decimated position file < number of traces")
+    elif len(df) > ntrace:
+        log.error("Length of decimated position file > number of traces")
+        log.error("Skipping position file")
+    else:
+        log.info("Extracting RTK position, altimeter height, UAS speed")
+        rtkMask[df["GPR:Trace"]] = rtkONMask
+        aglMask[df["GPR:Trace"]] = True
+        speedMask[df["GPR:Trace"]] = True
 
-    lon[rtkMask] = df["Longitude RTK"][rtkONMask]
-    lat[rtkMask] = df["Latitude RTK"][rtkONMask]
-    hgt[rtkMask] = df["Altitude RTK"][rtkONMask]
-    agl[aglMask] = df["ALT:Altitude"]
-    speed[speedMask] = df["Velocity"]
+        lon[rtkMask] = df["Longitude RTK"][rtkONMask]
+        lat[rtkMask] = df["Latitude RTK"][rtkONMask]
+        hgt[rtkMask] = df["Altitude RTK"][rtkONMask]
+        agl[aglMask] = df["ALT:Altitude"]
+        speed[speedMask] = df["Velocity"]
 
-    log.info("Calculating ECEF UAS location")
-    # lat/lon/hgt -> ECEF
-    xform = pyproj.Transformer.from_crs(4326, 4978)
-    x, y, z = xform.transform(lat, lon, hgt)
+        log.info("Calculating ECEF UAS location")
+        # lat/lon/hgt -> ECEF
+        xform = pyproj.Transformer.from_crs(4326, 4978)
+        x, y, z = xform.transform(lat, lon, hgt)
 
-    log.info("Calculating along-flightline distance")
-    dx = np.diff(x)
-    dy = np.diff(y)
-    dz = np.diff(z)
-    dDist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
-    dist = np.concatenate(([0], np.cumsum(dDist)))
+        log.info("Calculating along-flightline distance")
+        dx = np.diff(x)
+        dy = np.diff(y)
+        dz = np.diff(z)
+        dDist = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+        dist = np.concatenate(([0], np.cumsum(dDist)))
 
     dataDict = {
         "bscan": bscan,  # The BScan or radargram, data acquired by the GPR (size: mxn)
