@@ -16,3 +16,12 @@ This program reads in a Zond Aero 500 SEG-Y file and its associated CSV position
         "time": time,             # Time of the acquisition of each trace (size: n)
         "dt": dt,                 # Fast time sampling interval of the GPR (size: 1)
     }
+    
+To install:
+
+    pip install git+https://github.com/mchristoffersen/zond_ugcs
+
+Then to run:
+
+    import zond_ugcs
+    data = zond_ugcs.read("your_data_file.sgy")
