@@ -5,15 +5,7 @@ import pyproj
 import sys
 import matplotlib.pyplot as plt
 
-# Set up logger
-log = logging.getLogger("libzond")
-log.setLevel("INFO")
-log.propagate = 0
-ch = logging.StreamHandler()
-FORMAT = "[%(asctime)s] - %(name)s - %(levelname)s: %(message)s"
-formatter = logging.Formatter(FORMAT, datefmt="%Y-%m-%d %H:%M:%S")
-ch.setFormatter(formatter)
-log.addHandler(ch)
+from zond_ugcs import log
 
 import numpy as np
 import pandas as pd
@@ -25,7 +17,7 @@ def ddm2dd(ddm):
     return dd
 
 
-def read(file, loglevel="INFO"):
+def read(file, loglevel="CRITICAL"):
     log.setLevel(loglevel)
     log.info("Beginning Zond Aero 500 file read")
 

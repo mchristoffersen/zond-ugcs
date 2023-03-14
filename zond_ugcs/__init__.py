@@ -1,7 +1,7 @@
 import logging
 
 # Set up logger
-log = logging.getLogger("libzond")
+log = logging.getLogger("zond_ugcs")
 log.setLevel("INFO")
 log.propagate = 0
 ch = logging.StreamHandler()
