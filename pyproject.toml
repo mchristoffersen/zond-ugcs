@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zond-ugcs"
+version = "0.0.1"
+description = "Python reader for Zond Aero 500 GPR SEG-Y files produced by UgCS"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE.txt"}
+authors = [
+    {name = "Michael Christoffersen"},
+    {email = "mchristo28@gmail.com"}
+]
+dependencies = [
+    "pyproj",
+    "matplotlib",
+]
+
+[project.urls]
+repository = "https://github.com/mchristoffersen/zond-ugcs"
